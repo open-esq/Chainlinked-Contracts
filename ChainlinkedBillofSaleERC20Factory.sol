@@ -783,7 +783,7 @@ contract ChainlinkedBillofSaleERC20 is Chainlinked {
     event Disputed();
     event Resolved(address indexed this, address indexed buyer, address indexed seller);
 /**
- * @dev Sets the BOS transaction values for `descr`, `price`, 'tokenContract', `buyer`, `seller`, 'arbiter', 'arbiterFee'. All seven of
+ * @dev Sets the BOS transaction values for `descr`, `price`, 'tokenContract', `buyer`, `seller`, 'arbiter', 'arbiterFee', 'tokenpriceFloor'. All eight of
  * these values are immutable: they can only be set once during construction and reflect essential deal terms.
  */    
    constructor(
@@ -880,30 +880,28 @@ contract ChainlinkedBillofSaleERC20 is Chainlinked {
                 }
             // Creates a Chainlink request with the uint256 multiplier job
             function requestLINKPrice() public onlyBuyerOrSeller {
-                        // newRequest takes a JobID, a callback address, and callback function as input
-                        Chainlink.Request memory req = newRequest(UINT256_MUL_JOB, this, this.fulfill.selector);
-                        // Adds a URL with the key "get" to the request parameters
-                        req.add("get", "https://min-api.cryptocompare.com/data/price?fsym=LINK&tsyms=USD");
-                        // Uses input param (dot-delimited string) as the "path" in the request parameters
-                        req.add("path", "USD");
-                        // Adds an integer with the key "times" to the request parameters
-                        req.addInt("times", 100);
-                        // Sends the request with 1 LINK to the oracle contract
-                        chainlinkRequest(req, ORACLE_PAYMENT);
-                        }
-                        
+                    // newRequest takes a JobID, a callback address, and callback function as input
+                    Chainlink.Request memory req = newRequest(UINT256_MUL_JOB, this, this.fulfill.selector);
+                    // Adds a URL with the key "get" to the request parameters
+                    req.add("get", "https://min-api.cryptocompare.com/data/price?fsym=LINK&tsyms=USD");
+                    // Uses input param (dot-delimited string) as the "path" in the request parameters
+                    req.add("path", "USD");
+                    // Adds an integer with the key "times" to the request parameters
+                    req.addInt("times", 100);
+                    // Sends the request with 1 LINK to the oracle contract
+                    chainlinkRequest(req, ORACLE_PAYMENT);
+                    }
             // fulfill receives a uint256 data type
             function fulfill(bytes32 _requestId, uint256 _price) public
-             // Use recordChainlinkFulfillment to ensure only the requesting oracle can fulfill
-             recordChainlinkFulfillment(_requestId) {
-                        currentPrice = _price;
-                        }
-                        
+                    // Use recordChainlinkFulfillment to ensure only the requesting oracle can fulfill
+                    recordChainlinkFulfillment(_requestId) {
+                    currentPrice = _price;
+                    }
             // withdrawLink allows the arbiter to withdraw any extra LINK on the contract
             function withdrawLink() public onlyArbiter {
-                       LinkTokenInterface link = LinkTokenInterface(chainlinkToken());
-                       require(link.transfer(msg.sender, link.balanceOf(address(this))), "Unable to transfer");
-                       }
+                     LinkTokenInterface link = LinkTokenInterface(chainlinkToken());
+                     require(link.transfer(msg.sender, link.balanceOf(address(this))), "Unable to transfer");
+                     }
 }
 
 contract ChainlinkedBillofSaleERC20Factory {
